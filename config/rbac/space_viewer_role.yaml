@@ -1,0 +1,27 @@
+# permissions for end users to view spaces.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: space-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kube-multitenancy-space-controller
+    app.kubernetes.io/part-of: kube-multitenancy-space-controller
+    app.kubernetes.io/managed-by: kustomize
+  name: space-viewer-role
+rules:
+- apiGroups:
+  - github.sanjivmadhavan.io
+  resources:
+  - spaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - github.sanjivmadhavan.io
+  resources:
+  - spaces/status
+  verbs:
+  - get
