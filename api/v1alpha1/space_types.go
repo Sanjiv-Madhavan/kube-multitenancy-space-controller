@@ -62,6 +62,11 @@ type SpaceTemplateReference struct {
 type SpaceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// NamespaceName the name of the created underlying namespace.
+	NamespaceName string `json:"namespaceName,omitempty"`
+	// Conditions List of status conditions to indicate the status of Space
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -87,4 +92,12 @@ type SpaceList struct {
 
 func init() {
 	SchemeBuilder.Register(&Space{}, &SpaceList{})
+}
+
+func (s *Space) GetConditions() []metav1.Condition {
+	return s.Status.Conditions
+}
+
+func (s *Space) SetConditions(conditions []metav1.Condition) {
+	s.Status.Conditions = conditions
 }
