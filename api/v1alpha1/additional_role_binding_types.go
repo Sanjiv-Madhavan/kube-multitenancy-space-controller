@@ -5,8 +5,8 @@ import (
 )
 
 type AdditionalRoleBindings struct {
-	Subjects []v1.Subject `json:subjects,omitempty`
-	RoleRef  v1.RoleRef   `json:roleRef,omitempty`
+	Subjects []v1.Subject `json:"subjects,omitempty"`
+	RoleRef  v1.RoleRef   `json:"roleRef,omitempty"`
 }
 
 type AdditionalRoleBindingsSpec []AdditionalRoleBindings

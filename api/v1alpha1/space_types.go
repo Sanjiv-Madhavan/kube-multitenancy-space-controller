@@ -31,10 +31,10 @@ type SpaceSpec struct {
 
 	// Foo is an example field of Space. Edit space_types.go to remove/update
 	// +kubebuilder:validation:Optional
-	ResourceQuota corev1.ResourceQuotaSpec `json:resourceQuota,omitempty`
+	ResourceQuota corev1.ResourceQuotaSpec `json:"resourceQuota,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	AdditionalRoleBindings AdditionalRoleBindingsSpec `json:additionalRoleBindings, omitempty`
+	AdditionalRoleBindings AdditionalRoleBindingsSpec `json:"additionalRoleBindings,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	NetworkPolicies NetworkPolicy `json:"networkPolicies,omitempty"`
