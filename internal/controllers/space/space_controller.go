@@ -14,28 +14,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package space
 
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/runtime"
+	"go.uber.org/zap"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	githubsanjivmadhavaniov1alpha1 "github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/api/v1alpha1"
+	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/controllers/shared"
 )
 
 // SpaceReconciler reconciles a Space object
 type SpaceReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
+	shared.Reconciler
 }
 
 //+kubebuilder:rbac:groups=github.sanjivmadhavan.io,resources=spaces,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=github.sanjivmadhavan.io,resources=spaces/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=github.sanjivmadhavan.io,resources=spaces/finalizers,verbs=update
+//+kubebuilder:rbac:groups=core,resources=namespaces,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=resourcequotas,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=limitranges,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterroles,verbs=bind
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -47,11 +54,29 @@ type SpaceReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.2/pkg/reconcile
 func (r *SpaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := r.Logger.With(zap.String("name", req.String()))
 
-	// TODO(user): your logic here
+	space := &githubsanjivmadhavaniov1alpha1.Space{}
 
-	return ctrl.Result{}, nil
+	if err := r.Get(ctx, req.NamespacedName, space); err != nil {
+		if !apierrs.IsNotFound(err) {
+			logger.Error("Space object not found", zap.Error(err))
+			return ctrl.Result{}, nil
+		}
+		return ctrl.Result{}, err
+	}
+
+	// Apply filters if any
+	// Check if Space is about to be deleted post completion of finalizers
+	if !space.DeletionTimestamp.IsZero() {
+		r.reconcileDelete(ctx, space)
+	}
+
+	if space.Spec.TemplateRef.Name != "" {
+		return r.reconcileSpaceFromTemplate(ctx, space)
+	}
+
+	return r.reconcileSpace(ctx, space)
 }
 
 // SetupWithManager sets up the controller with the Manager.

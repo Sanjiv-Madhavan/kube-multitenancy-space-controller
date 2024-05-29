@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package space
 
 import (
 	"context"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -28,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	githubsanjivmadhavaniov1alpha1 "github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/api/v1alpha1"
+	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/controllers/shared"
 )
 
 var _ = Describe("Space Controller", func() {
@@ -69,8 +71,11 @@ var _ = Describe("Space Controller", func() {
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
 			controllerReconciler := &SpaceReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
+				Reconciler: shared.Reconciler{
+					Client: k8sClient,
+					Scheme: *k8sClient.Scheme(),
+					Logger: &zap.Logger{},
+				},
 			}
 
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{

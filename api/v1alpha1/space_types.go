@@ -54,7 +54,7 @@ type SpaceTemplateReference struct {
 	Name string `json:"name,omitempty"`
 	// Kind specifies the kind of the referenced resource, which should be "SpaceTemplate".
 	Kind string `json:"kind,omitempty"`
-	// Group is the API group of the SpaceTemplate,  "nauticus.io/v1alpha1".
+	// Group is the API group of the SpaceTemplate,  "github.sanjivmadhavan.io/v1alpha1".
 	Group string `json:"group,omitempty"`
 }
 
