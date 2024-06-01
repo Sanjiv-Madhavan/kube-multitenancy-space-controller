@@ -76,5 +76,23 @@ func (r *SpaceReconciler) reconcileSpaceFromTemplate(ctx context.Context, space 
 }
 
 func (r *SpaceReconciler) reconcileSpace(ctx context.Context, space *githubsanjivmadhavaniov1alpha1.Space) (ctrl.Result, error) {
+
+	// Check finalizers
+	if !controllerutil.ContainsFinalizer(space, constants.SpaceFinalizer) {
+		controllerutil.AddFinalizer(space, constants.SpaceFinalizer)
+		// Don't forget to update the resource
+		if err := r.Update(ctx, space); err != nil {
+			r.Logger.Error("Unable to update finalizers in reconciliation", zap.Error(err))
+			return ctrl.Result{}, err
+		}
+	}
+
+	r.Logger.Info("Reconciling Namespace for space.")
+
+	if err := r.reconcileNamespace(ctx, space); err != nil {
+		r.Logger.Error("Failed to reconcile the namespace for the space", zap.Error(err))
+		return ctrl.Result{}, nil
+	}
+
 	return ctrl.Result{}, nil
 }
