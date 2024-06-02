@@ -18,6 +18,7 @@ package v1alpha1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -32,6 +33,9 @@ type SpaceSpec struct {
 	// Foo is an example field of Space. Edit space_types.go to remove/update
 	// +kubebuilder:validation:Optional
 	ResourceQuota corev1.ResourceQuotaSpec `json:"resourceQuota,omitempty"`
+
+	// +kubebuilder:validation:Required
+	Owners []v1.Subject `json:"owners,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	AdditionalRoleBindings AdditionalRoleBindingsSpec `json:"additionalRoleBindings,omitempty"`

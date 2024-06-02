@@ -25,6 +25,7 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	zapper "go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -35,7 +36,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	githubsanjivmadhavaniov1alpha1 "github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/api/v1alpha1"
-	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/controller"
+	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/controllers/shared"
+	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/controllers/space"
+	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/controllers/spaceTemplate"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -122,14 +125,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.SpaceReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+	logger, err := zapper.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+
+	if err = (&space.SpaceReconciler{
+		Reconciler: shared.Reconciler{
+			Client:        mgr.GetClient(),
+			Logger:        logger.Named("controllers").Named("Space"),
+			Scheme:        mgr.GetScheme(),
+			EventRecorder: mgr.GetEventRecorderFor("space-controller"),
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Space")
 		os.Exit(1)
 	}
-	if err = (&controller.SpaceTemplateReconciler{
+	if err = (&spaceTemplate.SpaceTemplateReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
