@@ -242,6 +242,11 @@ func (in *SpaceList) DeepCopyObject() runtime.Object {
 func (in *SpaceSpec) DeepCopyInto(out *SpaceSpec) {
 	*out = *in
 	in.ResourceQuota.DeepCopyInto(&out.ResourceQuota)
+	if in.Owners != nil {
+		in, out := &in.Owners, &out.Owners
+		*out = make([]v1.Subject, len(*in))
+		copy(*out, *in)
+	}
 	if in.AdditionalRoleBindings != nil {
 		in, out := &in.AdditionalRoleBindings, &out.AdditionalRoleBindings
 		*out = make(AdditionalRoleBindingsSpec, len(*in))

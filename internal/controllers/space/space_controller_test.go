@@ -73,7 +73,7 @@ var _ = Describe("Space Controller", func() {
 			controllerReconciler := &SpaceReconciler{
 				Reconciler: shared.Reconciler{
 					Client: k8sClient,
-					Scheme: *k8sClient.Scheme(),
+					Scheme: k8sClient.Scheme(),
 					Logger: &zap.Logger{},
 				},
 			}
