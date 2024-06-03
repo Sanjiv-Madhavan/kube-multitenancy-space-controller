@@ -117,8 +117,18 @@ func (r *SpaceReconciler) reconcileSpace(ctx context.Context, space *githubsanji
 	limitRangeSpecValue := reflect.ValueOf(space.Spec.LimitRanges)
 	if !limitRangeSpecValue.IsZero() {
 		r.Logger.Info("Reconciling limit ranges")
-		if err := r.reconcileResourceQuota(ctx, space); err != nil {
+		if err := r.reconcileLimitRanges(ctx, space); err != nil {
 			r.Logger.Error("Failed reconciling Limit Ranges", zap.Error(err))
+			r.ProcessFailedCondition(ctx, space, constants.SpaceConditionFailed, metav1.ConditionFalse, constants.SpaceFailedReason, constants.SpaceSyncFailMessage)
+			return ctrl.Result{}, err
+		}
+	}
+
+	ownerRoleBindingSpecValue := reflect.ValueOf(space.Spec.Owners)
+	if !ownerRoleBindingSpecValue.IsZero() {
+		r.Logger.Info("Reconciling Owner Role Binding for space")
+		if err := r.reconcileOwnerRoleBindings(ctx, space); err != nil {
+			r.Logger.Error("Failed reconciling Owner Role Bindings", zap.Error(err))
 			r.ProcessFailedCondition(ctx, space, constants.SpaceConditionFailed, metav1.ConditionFalse, constants.SpaceFailedReason, constants.SpaceSyncFailMessage)
 			return ctrl.Result{}, err
 		}
