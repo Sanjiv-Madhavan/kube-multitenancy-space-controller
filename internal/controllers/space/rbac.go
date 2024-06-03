@@ -5,6 +5,7 @@ import (
 
 	githubsanjivmadhavaniov1alpha1 "github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/api/v1alpha1"
 	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/pkg"
+	"go.uber.org/zap"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -19,6 +20,17 @@ func (r *SpaceReconciler) reconcileOwners(ctx context.Context, space *githubsanj
 	}
 	roleBinding := r.newRoleBinding(space, roleBindingName, roleRef, space.Spec.Owners)
 	err = r.syncRoleBinding(ctx, space, roleBindingName, roleBinding, roleRef, roleBinding.Subjects)
+	return err
+}
+
+func (r *SpaceReconciler) reconcileAdditionalRoleBindings(ctx context.Context, space *githubsanjivmadhavaniov1alpha1.Space) (err error) {
+	for _, addOnRoleBinding := range space.Spec.AdditionalRoleBindings {
+		roleBindingName := space.Name + "-" + addOnRoleBinding.RoleRef.Name
+		additionalRoleBindingToConstruct := r.newRoleBinding(space, roleBindingName, addOnRoleBinding.RoleRef, addOnRoleBinding.Subjects)
+
+		err = r.syncRoleBinding(ctx, space, roleBindingName, additionalRoleBindingToConstruct, addOnRoleBinding.RoleRef, addOnRoleBinding.Subjects)
+	}
+
 	return err
 }
 
@@ -73,5 +85,14 @@ func (r *SpaceReconciler) deleteOwners(ctx context.Context, space *githubsanjivm
 }
 
 func (r *SpaceReconciler) deleteAdditionalRoleBindings(ctx context.Context, space *githubsanjivmadhavaniov1alpha1.Space) (err error) {
+	for _, addOnRoleBinding := range space.Spec.AdditionalRoleBindings {
+		roleBindingName := space.Name + "-" + addOnRoleBinding.RoleRef.Name
+		additionalRoleBindingToConstruct := r.newRoleBinding(space, roleBindingName, addOnRoleBinding.RoleRef, addOnRoleBinding.Subjects)
+
+		if err = r.DeleteObject(ctx, additionalRoleBindingToConstruct); err != nil {
+			r.Logger.Error("Cannot Delete Addon Role Binding", zap.Error(err))
+			return err
+		}
+	}
 	return nil
 }

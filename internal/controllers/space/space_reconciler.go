@@ -127,12 +127,46 @@ func (r *SpaceReconciler) reconcileSpace(ctx context.Context, space *githubsanji
 	ownerRoleBindingSpecValue := reflect.ValueOf(space.Spec.Owners)
 	if !ownerRoleBindingSpecValue.IsZero() {
 		r.Logger.Info("Reconciling Owner Role Binding for space")
-		if err := r.reconcileOwnerRoleBindings(ctx, space); err != nil {
+		if err := r.reconcileOwners(ctx, space); err != nil {
 			r.Logger.Error("Failed reconciling Owner Role Bindings", zap.Error(err))
 			r.ProcessFailedCondition(ctx, space, constants.SpaceConditionFailed, metav1.ConditionFalse, constants.SpaceFailedReason, constants.SpaceSyncFailMessage)
 			return ctrl.Result{}, err
 		}
 	}
 
-	return ctrl.Result{}, nil
+	additionalRoleBindings := reflect.ValueOf(space.Spec.AdditionalRoleBindings)
+	if !additionalRoleBindings.IsZero() {
+		r.Logger.Info("Reconciling Additional RoleBindings")
+		if err := r.reconcileAdditionalRoleBindings(ctx, space); err != nil {
+			r.Logger.Error("Failed reconciling Additional Role Bindings", zap.Error(err))
+			r.ProcessFailedCondition(ctx, space, constants.SpaceConditionFailed, metav1.ConditionFalse, constants.SpaceFailedReason, constants.SpaceSyncFailMessage)
+			return ctrl.Result{}, err
+		}
+	}
+
+	networkPoliciesSpecValue := reflect.ValueOf(space.Spec.NetworkPolicies)
+	if !networkPoliciesSpecValue.IsZero() {
+		r.Logger.Info("Reconciling Network Policies")
+		if err := r.reconcileNetworkPolicies(ctx, space); err != nil {
+			r.Logger.Error("Failed reconciling Network Policies", zap.Error(err))
+			r.ProcessFailedCondition(ctx, space, constants.SpaceConditionFailed, metav1.ConditionFalse, constants.SpaceFailedReason, constants.SpaceSyncFailMessage)
+			return ctrl.Result{}, err
+		}
+	}
+
+	serviceAccountSpecValue := reflect.ValueOf(space.Spec.ServiceAccounts)
+	if !serviceAccountSpecValue.IsZero() {
+		r.Logger.Info("Reconciling Service Accounts")
+		if err := r.reconcileServiceAccounts(ctx, space); err != nil {
+			r.Logger.Error("Failed reconciling Service Accounts", zap.Error(err))
+			r.ProcessFailedCondition(ctx, space, constants.SpaceConditionFailed, metav1.ConditionFalse, constants.SpaceFailedReason, constants.SpaceSyncFailMessage)
+			return ctrl.Result{}, err
+		}
+	}
+
+	r.ProcessReadyCondition(ctx, space, constants.SpaceConditionReady, metav1.ConditionTrue, constants.SpaceSyncSuccessReason, constants.SpaceSyncSuccessMessage)
+
+	return ctrl.Result{
+		RequeueAfter: constants.RequeueAfter,
+	}, nil
 }

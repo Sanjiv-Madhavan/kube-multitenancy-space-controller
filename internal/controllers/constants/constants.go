@@ -1,7 +1,10 @@
 package constants
 
+import "time"
+
 const (
 	SpaceFinalizer string = "github.sanjivmadhavan.io/kube-multitenancy-space-finalizer"
+	RequeueAfter          = time.Minute * 3
 
 	SpaceConditionReady    string = "Ready"
 	SpaceConditionCreating string = "Creating"
