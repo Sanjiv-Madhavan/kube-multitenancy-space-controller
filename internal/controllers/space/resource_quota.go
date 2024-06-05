@@ -34,7 +34,7 @@ func (r *SpaceReconciler) syncResourceQuota(ctx context.Context, space *githubsa
 	res, err := controllerutil.CreateOrUpdate(ctx, r.Client, resourceQuota, func() error {
 		resourceQuota.SetLabels(map[string]string{
 			resourceQuotaLabel: resourceQuota.Name,
-			spaceLabel:         space.Name,
+			spaceLabel:         space.Status.NamespaceName,
 		})
 		resourceQuota.Spec = space.Spec.ResourceQuota
 		return nil
