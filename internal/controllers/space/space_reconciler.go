@@ -73,10 +73,6 @@ func (r *SpaceReconciler) reconcileDelete(ctx context.Context, space *githubsanj
 	return ctrl.Result{}, nil
 }
 
-func (r *SpaceReconciler) reconcileSpaceFromTemplate(ctx context.Context, space *githubsanjivmadhavaniov1alpha1.Space) (ctrl.Result, error) {
-	return ctrl.Result{}, nil
-}
-
 func (r *SpaceReconciler) reconcileSpace(ctx context.Context, space *githubsanjivmadhavaniov1alpha1.Space) (ctrl.Result, error) {
 
 	// Check finalizers
@@ -169,4 +165,9 @@ func (r *SpaceReconciler) reconcileSpace(ctx context.Context, space *githubsanji
 	return ctrl.Result{
 		RequeueAfter: constants.RequeueAfter,
 	}, nil
+}
+
+func (r *SpaceReconciler) reconcileSpaceFromTemplate(ctx context.Context, space *githubsanjivmadhavaniov1alpha1.Space) (ctrl.Result, error) {
+
+	return ctrl.Result{}, nil
 }
