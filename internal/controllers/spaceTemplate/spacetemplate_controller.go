@@ -19,18 +19,17 @@ package spaceTemplate
 import (
 	"context"
 
-	"k8s.io/apimachinery/pkg/runtime"
+	"go.uber.org/zap"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	githubsanjivmadhavaniov1alpha1 "github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/api/v1alpha1"
+	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/controllers/shared"
 )
 
 // SpaceTemplateReconciler reconciles a SpaceTemplate object
 type SpaceTemplateReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
+	shared.Reconciler
 }
 
 //+kubebuilder:rbac:groups=github.sanjivmadhavan.io,resources=spacetemplates,verbs=get;list;watch;create;update;patch;delete
@@ -47,11 +46,23 @@ type SpaceTemplateReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.2/pkg/reconcile
 func (r *SpaceTemplateReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	logger := r.Logger.With(zap.String("name", req.NamespacedName.String()))
 
-	return ctrl.Result{}, nil
+	spaceTemplate := &githubsanjivmadhavaniov1alpha1.SpaceTemplate{}
+
+	if err := r.Get(ctx, req.NamespacedName, spaceTemplate); err != nil {
+		if !apierrs.IsNotFound(err) {
+			logger.Error("Space object not found", zap.Error(err))
+			return ctrl.Result{}, nil
+		}
+		return ctrl.Result{}, err
+	}
+
+	if !spaceTemplate.DeletionTimestamp.IsZero() {
+		r.reconcileDelete(ctx, spaceTemplate)
+	}
+	return r.reconcileSpaceTemplate(ctx, spaceTemplate)
 }
 
 // SetupWithManager sets up the controller with the Manager.

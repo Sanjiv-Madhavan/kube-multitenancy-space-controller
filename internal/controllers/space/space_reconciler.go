@@ -81,6 +81,7 @@ func (r *SpaceReconciler) reconcileSpace(ctx context.Context, space *githubsanji
 		// Don't forget to update the resource
 		if err := r.Update(ctx, space); err != nil {
 			r.Logger.Error("Unable to update finalizers in reconciliation", zap.Error(err))
+			r.EmitEvent(space, controllerutil.OperationResultNone, space.Name, "Space creation/update Failure", err)
 			return ctrl.Result{}, err
 		}
 	}
@@ -161,6 +162,7 @@ func (r *SpaceReconciler) reconcileSpace(ctx context.Context, space *githubsanji
 	}
 
 	r.ProcessReadyCondition(ctx, space, constants.SpaceConditionReady, metav1.ConditionTrue, constants.SpaceSyncSuccessReason, constants.SpaceSyncSuccessMessage)
+	r.EmitEvent(space, controllerutil.OperationResultCreated, space.Name, "Ensuring space creation/update Failure", nil)
 
 	return ctrl.Result{
 		RequeueAfter: constants.RequeueAfter,
@@ -169,5 +171,29 @@ func (r *SpaceReconciler) reconcileSpace(ctx context.Context, space *githubsanji
 
 func (r *SpaceReconciler) reconcileSpaceFromTemplate(ctx context.Context, space *githubsanjivmadhavaniov1alpha1.Space) (ctrl.Result, error) {
 
-	return ctrl.Result{}, nil
+	spaceTemplate, err := r.FetchSpaceTemplate(ctx, space.Spec.TemplateRef.Name)
+	if err != nil {
+		r.Logger.Info("SpaceTemplate: " + space.Spec.TemplateRef.Name + "SpaceTemplate does not exist")
+		return ctrl.Result{}, err
+	}
+
+	if res, err := r.MergeResourceQuotaas(space, spaceTemplate); err != nil {
+		space.Spec.ResourceQuota = *res
+	}
+
+	if res, err := r.MergeRoleBindings(space, spaceTemplate); err != nil {
+		space.Spec.AdditionalRoleBindings = res
+	}
+
+	if reflect.ValueOf(space.Spec.NetworkPolicies).IsZero() {
+		space.Spec.NetworkPolicies = spaceTemplate.Spec.NetworkPolicies
+	}
+
+	if reflect.ValueOf(space.Spec.LimitRanges).IsZero() {
+		space.Spec.LimitRanges = spaceTemplate.Spec.LimitRanges
+	}
+
+	r.Logger.Info("Reconciling space: " + string(space.Name) + "from template: " + spaceTemplate.Name)
+
+	return r.reconcileSpace(ctx, space)
 }

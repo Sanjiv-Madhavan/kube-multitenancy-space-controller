@@ -22,6 +22,8 @@ import (
 	"go.uber.org/zap"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	githubsanjivmadhavaniov1alpha1 "github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/api/v1alpha1"
 	"github.com/Sanjiv-Madhavan/kube-multitenancy-space-controller/internal/controllers/shared"
@@ -54,7 +56,7 @@ type SpaceReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.2/pkg/reconcile
 func (r *SpaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := r.Logger.With(zap.String("name", req.String()))
+	logger := r.Logger.With(zap.String("name", req.NamespacedName.String()))
 
 	space := &githubsanjivmadhavaniov1alpha1.Space{}
 
@@ -83,5 +85,15 @@ func (r *SpaceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 func (r *SpaceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&githubsanjivmadhavaniov1alpha1.Space{}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithEventFilter(ignoreDeletionPredicate()).
 		Complete(r)
+}
+
+func ignoreDeletionPredicate() predicate.Predicate {
+	return predicate.Funcs{
+		DeleteFunc: func(de event.DeleteEvent) bool {
+			return !de.DeleteStateUnknown
+		},
+	}
 }

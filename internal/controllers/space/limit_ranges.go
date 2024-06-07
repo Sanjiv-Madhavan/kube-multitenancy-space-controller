@@ -49,6 +49,7 @@ func (r *SpaceReconciler) syncLimitRange(ctx context.Context, space *githubsanji
 	})
 
 	r.Logger.Info("ResoourceQuota sync result: " + string(res) + ", name: " + limitRange.Name)
+	r.EmitEvent(space, res, space.Name, "Ensuring LimitRange creation/Update", err)
 
 	return err
 }

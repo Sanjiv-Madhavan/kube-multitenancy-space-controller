@@ -52,6 +52,7 @@ func (r *SpaceReconciler) syncNamespace(ctx context.Context, space *githubsanjiv
 	})
 
 	r.Logger.Info("Namespace sync result: " + string(res) + "name" + namespace.Name)
+	r.EmitEvent(space, res, space.Name, "Ensuring Namespace creation/Update", err)
 
 	return err
 }

@@ -59,6 +59,7 @@ func (r *SpaceReconciler) syncRoleBinding(ctx context.Context, space *githubsanj
 		return nil
 	})
 	r.Logger.Info("Rolebinding sync result: " + string(res) + ", name: " + rolebindingName)
+	r.EmitEvent(space, res, space.Name, "Ensuring RoleBinding creation/Update", err)
 
 	return err
 }

@@ -4,11 +4,13 @@ import (
 	"context"
 
 	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/utils/clock"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 type Reconciler struct {
@@ -34,6 +36,15 @@ type ConditionsChangeObject interface {
 	metav1.Object
 	GetConditions() []metav1.Condition
 	SetConditions([]metav1.Condition)
+}
+
+func (r *Reconciler) EmitEvent(object runtime.Object, res controllerutil.OperationResult, reason string, message string, err error) {
+	eventType := corev1.EventTypeNormal
+	if err != nil {
+		eventType = corev1.EventTypeWarning
+		message = "Error"
+	}
+	r.EventRecorder.AnnotatedEventf(object, map[string]string{"OperationResult": string(res)}, eventType, reason, message)
 }
 
 func (r *Reconciler) setCondition(object ConditionsChangeObject, conditionType string, conditionStatus metav1.ConditionStatus, ObservedGeneration int64, reason string, message string) {

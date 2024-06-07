@@ -143,8 +143,12 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&spaceTemplate.SpaceTemplateReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Reconciler: shared.Reconciler{
+			Client:        mgr.GetClient(),
+			Logger:        logger.Named("controllers").Named("Space"),
+			Scheme:        mgr.GetScheme(),
+			EventRecorder: mgr.GetEventRecorderFor("space-controller"),
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "SpaceTemplate")
 		os.Exit(1)
