@@ -31,7 +31,7 @@ type SpaceTemplateSpec struct {
 
 	// Specifies a list of ResourceQuota resources assigned to the Space. The assigned values are inherited by the namespace created by the Space. Optional.
 	ResourceQuota corev1.ResourceQuotaSpec `json:"resourceQuota,omitempty"`
-	// Specifies additional RoleBindings assigned to the Space. Nauticus will ensure that the namespace in the Space always contain the RoleBinding for the given ClusterRole. Optional.
+	// Specifies additional RoleBindings assigned to the Space. kube-multitenancy-operator will ensure that the namespace in the Space always contain the RoleBinding for the given ClusterRole. Optional.
 	AdditionalRoleBindings AdditionalRoleBindingsSpec `json:"additionalRoleBindings,omitempty"`
 	// Specifies the NetworkPolicies assigned to the Tenant. The assigned NetworkPolicies are inherited by the namespace created in the Space. Optional.
 	NetworkPolicies NetworkPolicy `json:"networkPolicies,omitempty"`

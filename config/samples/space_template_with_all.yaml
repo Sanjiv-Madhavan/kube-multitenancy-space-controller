@@ -1,12 +1,12 @@
-apiVersion: nauticus.io/v1alpha1
+apiVersion: github.sanjivmadhavan.io/v1alpha1
 kind: SpaceTemplate
 metadata:
   labels:
     app.kubernetes.io/name: spacetemplate
     app.kubernetes.io/instance: spacetemplate-sample
-    app.kubernetes.io/part-of: nauticus
+    app.kubernetes.io/part-of: kube-multitenancy-operator
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: nauticus
+    app.kubernetes.io/created-by: kube-multitenancy-operator
   name: space-tpl-sample
 spec:
   resourceQuota:

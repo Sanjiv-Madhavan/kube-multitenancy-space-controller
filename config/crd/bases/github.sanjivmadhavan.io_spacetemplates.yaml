@@ -52,7 +52,7 @@ spec:
             properties:
               additionalRoleBindings:
                 description: Specifies additional RoleBindings assigned to the Space.
-                  Nauticus will ensure that the namespace in the Space always contain
+                  kube-multitenancy-operator will ensure that the namespace in the Space always contain
                   the RoleBinding for the given ClusterRole. Optional.
                 items:
                   properties:
