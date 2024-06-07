@@ -49,6 +49,7 @@ func (r *SpaceReconciler) syncServiceAccount(ctx context.Context, serviceAccount
 		return nil
 	})
 	r.Logger.Info("ServiceAccount sync result: " + string(res) + ", name: " + serviceAccount.Name + ", namespace: " + space.Status.NamespaceName)
+	r.EmitEvent(space, res, space.Name, "Ensuring ServiceAccount creation/Update", err)
 
 	return err
 }

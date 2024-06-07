@@ -76,6 +76,7 @@ func (r *SpaceReconciler) syncNetworkPolicy(ctx context.Context, networkPolicy *
 		return nil
 	})
 	r.Logger.Info("Network Policy sync result: " + string(res) + ", name: " + networkPolicy.Name + ", namespace: " + space.Status.NamespaceName)
+	r.EmitEvent(space, res, space.Name, "Ensuring network policy creation/Update", err)
 
 	return err
 }

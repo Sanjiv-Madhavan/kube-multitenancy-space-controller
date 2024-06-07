@@ -41,6 +41,8 @@ func (r *SpaceReconciler) syncResourceQuota(ctx context.Context, space *githubsa
 	})
 
 	r.Logger.Info("ResoourceQuota sync result: " + string(res) + ", name: " + resourceQuota.Name)
+	r.EmitEvent(space, res, space.Name, "Ensuring ResourceQuota creation/Update", err)
+
 	return err
 }
 
