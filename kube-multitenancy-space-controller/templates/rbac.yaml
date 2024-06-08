@@ -1,0 +1,293 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-manager-role
+  labels:
+    {{- include "kube-multitenancy-space-controller.labels" . | nindent 4 }}
+  {{ - with .Values.customAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - limitranges
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - resourcequotas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - github.sanjivmadhavan.io
+  resources:
+  - spaces
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - github.sanjivmadhavan.io
+  resources:
+  - spaces/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - github.sanjivmadhavan.io
+  resources:
+  - spaces/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - github.sanjivmadhavan.io
+  resources:
+  - spacetemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - github.sanjivmadhavan.io
+  resources:
+  - spacetemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - github.sanjivmadhavan.io
+  resources:
+  - spacetemplates/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterroles
+  verbs:
+  - bind
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-manager-rolebinding
+  labels:
+    {{- include "kube-multitenancy-space-controller.labels" . | nindent 4 }}
+  {{ - with .Values.customAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-manager-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "kube-multitenancy-space-controller.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-metrics-reader
+  labels:
+    {{- include "kube-multitenancy-space-controller.labels" . | nindent 4 }}
+  {{ - with .Values.customAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-proxy-role
+  labels:
+    {{- include "kube-multitenancy-space-controller.labels" . | nindent 4 }}
+  {{ - with .Values.customAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-proxy-rolebinding
+  labels:
+    {{- include "kube-multitenancy-space-controller.labels" . | nindent 4 }}
+  {{ - with .Values.customAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "kube-multitenancy-space-controller.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-leader-election-role
+  labels:
+    {{- include "kube-multitenancy-space-controller.labels" . | nindent 4 }}
+  {{ - with .Values.customAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-leader-election-rolebinding
+  labels:
+    {{- include "kube-multitenancy-space-controller.labels" . | nindent 4 }}
+  {{ - with .Values.customAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "kube-multitenancy-space-controller.fullname" . }}-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "kube-multitenancy-space-controller.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
